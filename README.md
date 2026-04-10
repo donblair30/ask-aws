@@ -26,17 +26,19 @@ Everything except the final LLM call runs entirely on your machine.
 
 ## Installation
 
-**Requirements:** Python 3.11+
+**Requirements:** Python 3.11 (3.12+ not recommended due to torch compatibility constraints)
 
 ```bash
 git clone <your-repo-url>
 cd ask-aws
 
-python3 -m venv .venv
-source .venv/bin/activate      # Windows: .venv\Scripts\activate
+python3.11 -m venv .venv
+source .venv/bin/activate
 
-pip install -r requirements.txt
+pip3 install -r requirements.txt
 ```
+
+> **Note:** If `python3.11` is not found, install it via Homebrew: `brew install python@3.11`. On Apple Silicon Macs, ensure you are using a native ARM64 Python for best performance.
 
 ## Configuration
 
