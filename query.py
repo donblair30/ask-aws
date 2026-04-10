@@ -11,7 +11,13 @@ Usage:
 import argparse
 import sys
 
+from rich.console import Console
+from rich.markdown import Markdown
+from rich.rule import Rule
+
 from rag import answer
+
+console = Console()
 
 
 def main() -> None:
@@ -36,22 +42,23 @@ def main() -> None:
     args = parser.parse_args()
     question = " ".join(args.question)
 
-    print(f"\nQ: {question}\n")
-    print("Searching documentation...\n")
+    console.print(f"\n[bold cyan]Q:[/bold cyan] {question}\n")
+    console.print("[dim]Searching documentation...[/dim]\n")
 
     result = answer(question, n_results=args.top_k)
 
-    print(result["answer"])
+    console.print(Markdown(result["answer"]))
 
-    print("\nSources:")
+    console.print(Rule(style="dim"))
+    console.print("[bold]Sources:[/bold]")
     for url in result["sources"]:
-        print(f"  {url}")
+        console.print(f"  [dim]{url}[/dim]")
 
     if args.debug:
-        print("\n--- Retrieved chunks ---")
+        console.print(Rule(title="Retrieved Chunks", style="dim"))
         for i, chunk in enumerate(result["chunks"], 1):
-            print(f"\n[{i}] score={chunk['score']}  {chunk['url']}")
-            print(chunk["text"][:300] + ("..." if len(chunk["text"]) > 300 else ""))
+            console.print(f"\n[bold][{i}][/bold] score=[green]{chunk['score']}[/green]  [dim]{chunk['url']}[/dim]")
+            console.print(chunk["text"][:300] + ("..." if len(chunk["text"]) > 300 else ""))
 
 
 if __name__ == "__main__":

@@ -30,7 +30,7 @@ Answer the question using ONLY the documentation excerpts provided. Be specific 
 - Include AWS CLI commands, SDK snippets, or policy JSON where relevant.
 - Mention required IAM permissions when they matter.
 - If the excerpts don't contain enough information to answer fully, say so.
-- At the end, list the source URLs you drew from under a "Sources:" heading.
+- Do NOT include a Sources or References section — sources are appended automatically.
 Do not invent information not present in the excerpts.\
 """
 
