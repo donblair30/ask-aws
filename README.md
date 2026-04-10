@@ -32,7 +32,7 @@ Everything except the final LLM call runs entirely on your machine.
 git clone <your-repo-url>
 cd ask-aws
 
-python -m venv .venv
+python3 -m venv .venv
 source .venv/bin/activate      # Windows: .venv\Scripts\activate
 
 pip install -r requirements.txt
@@ -77,27 +77,27 @@ make query
 
 ```bash
 # 1. Discover URLs from AWS sitemaps
-python -m ingest.corpus
+python3 -m ingest.corpus
 
 # 2. Fetch and cache raw HTML
-python -m ingest.fetch s3       # or ec2, iam, or omit for all
+python3 -m ingest.fetch s3       # or ec2, iam, or omit for all
 
 # 3. Strip boilerplate, extract plain text
-python -m ingest.clean s3
+python3 -m ingest.clean s3
 
 # 4. Split into chunks
-python -m ingest.chunk s3
+python3 -m ingest.chunk s3
 
 # 5. Embed and store in ChromaDB
-python -m store.embed s3
+python3 -m store.embed s3
 ```
 
 ## Querying
 
 ```bash
-python query.py "How do I control access to S3 buckets?"
-python query.py "What IAM permissions does an ECS task execution role need?"
-python query.py "How do EC2 placement groups affect network performance?"
+python3 query.py "How do I control access to S3 buckets?"
+python3 query.py "What IAM permissions does an ECS task execution role need?"
+python3 query.py "How do EC2 placement groups affect network performance?"
 ```
 
 ### Options
@@ -109,7 +109,7 @@ python query.py "How do EC2 placement groups affect network performance?"
 ```
 
 ```bash
-python query.py --service s3 --top-k 8 --debug "How does S3 versioning work?"
+python3 query.py --service s3 --top-k 8 --debug "How does S3 versioning work?"
 ```
 
 ## How the app works — end to end
