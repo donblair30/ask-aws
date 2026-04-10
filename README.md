@@ -112,19 +112,32 @@ python query.py "How do EC2 placement groups affect network performance?"
 python query.py --service s3 --top-k 8 --debug "How does S3 versioning work?"
 ```
 
-## How embeddings work
+## How the app works — end to end
 
-Embeddings are the mechanism that makes semantic search possible. Instead of matching keywords, embeddings convert text into a list of numbers (a vector) that captures its *meaning*. Two pieces of text about the same concept will have similar vectors even if they use different words.
+The app has two distinct phases: **ingestion** (run once to build the knowledge base) and **querying** (run any time you have a question).
 
-**During ingestion**, each chunk is passed through `all-MiniLM-L6-v2`, a lightweight embedding model that runs locally via `sentence-transformers`. The model outputs a 384-dimension vector for each chunk. That vector, along with the chunk text and its metadata (URL, service), is stored in ChromaDB.
+### Ingestion phase
 
-**During a query**, the same model embeds your question into a vector using the exact same process. ChromaDB then computes the cosine similarity between your question vector and every stored chunk vector, returning the top-k closest matches.
+```
+AWS sitemaps → filtered URL list → raw HTML → clean text → chunks → embeddings → ChromaDB
+```
 
-Cosine similarity measures the angle between two vectors — a score of 1.0 means identical meaning, 0.0 means unrelated. The `--debug` flag on `query.py` prints the similarity score for each retrieved chunk, which is useful for diagnosing poor results.
+1. **Discover** — `corpus.py` fetches the sitemap XML for each service and filters out API reference and CLI reference URLs, leaving only User Guide pages
+2. **Fetch** — `fetch.py` downloads each page as raw HTML and caches it to `data/raw/{service}/`. Already-cached pages are skipped on re-runs
+3. **Clean** — `clean.py` strips navigation, headers, footers, and other boilerplate using BeautifulSoup, leaving only the main content as plain text
+4. **Chunk** — `chunk.py` splits each page into overlapping 400-word windows and saves them as JSONL records to `data/chunks/{service}/`
+5. **Embed** — `store/embed.py` passes each chunk through the local embedding model and upserts the resulting vectors into ChromaDB
 
-Because the same model is used for both ingestion and querying, the vector space is consistent — the question and the chunks live in the same coordinate system, so comparison is meaningful.
+### Query phase
 
-The model weights are downloaded once on first run and cached locally by `sentence-transformers` in `~/.cache/huggingface/`. No data leaves your machine during embedding.
+```
+Your question → embedding → ChromaDB similarity search → top-k chunks → Claude → answer + sources
+```
+
+1. **Embed the question** — your question is converted to a vector using the same local model used during ingestion
+2. **Retrieve** — ChromaDB finds the top-k chunks whose vectors are closest to the question vector
+3. **Generate** — the retrieved chunks are assembled into a prompt and sent to Claude, which synthesises an answer grounded in the actual documentation
+4. **Return** — the answer and source URLs are printed to the terminal
 
 ## How chunking works
 
@@ -140,6 +153,20 @@ Large documentation pages can't be embedded as a whole — embedding models have
 At query time, the question is embedded using the same model, and the top-k most similar chunks are retrieved from ChromaDB. Those chunks — not full pages — are what gets sent to Claude, keeping the prompt focused and within token limits.
 
 You can tune `CHUNK_SIZE`, `CHUNK_OVERLAP`, and `TOP_K` in `config.py` if retrieval quality feels off. Smaller chunks improve precision; larger chunks preserve more context per result.
+
+## How embeddings work
+
+Embeddings are the mechanism that makes semantic search possible. Instead of matching keywords, embeddings convert text into a list of numbers (a vector) that captures its *meaning*. Two pieces of text about the same concept will have similar vectors even if they use different words.
+
+**During ingestion**, each chunk is passed through `all-MiniLM-L6-v2`, a lightweight embedding model that runs locally via `sentence-transformers`. The model outputs a 384-dimension vector for each chunk. That vector, along with the chunk text and its metadata (URL, service), is stored in ChromaDB.
+
+**During a query**, the same model embeds your question into a vector using the exact same process. ChromaDB then computes the cosine similarity between your question vector and every stored chunk vector, returning the top-k closest matches.
+
+Cosine similarity measures the angle between two vectors — a score of 1.0 means identical meaning, 0.0 means unrelated. The `--debug` flag on `query.py` prints the similarity score for each retrieved chunk, which is useful for diagnosing poor results.
+
+Because the same model is used for both ingestion and querying, the vector space is consistent — the question and the chunks live in the same coordinate system, so comparison is meaningful.
+
+The model weights are downloaded once on first run and cached locally by `sentence-transformers` in `~/.cache/huggingface/`. No data leaves your machine during embedding.
 
 ## Project structure
 
