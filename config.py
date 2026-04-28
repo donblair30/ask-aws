@@ -21,9 +21,9 @@ CHROMA_DIR = DATA_DIR / "chroma"
 EMBED_MODEL: str = "all-MiniLM-L6-v2"
 
 # Chunking
-CHUNK_SIZE: int = 400    # target words per chunk
-CHUNK_OVERLAP: int = 50  # word overlap between adjacent chunks
-MIN_CHUNK_WORDS: int = 30  # discard chunks shorter than this
+CHUNK_SIZE: int = 350    # target words per chunk
+CHUNK_OVERLAP: int = 40  # word overlap between adjacent chunks
+MIN_CHUNK_WORDS: int = 20  # discard chunks shorter than this
 
 # Retrieval
 TOP_K: int = 5  # number of chunks to retrieve per query
